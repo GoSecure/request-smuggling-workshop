@@ -1,0 +1,36 @@
+body {
+	background-color: #000;
+}
+
+a:link, a:visited {
+	color: #000;
+}
+
+a:hover {
+	color:#666;
+}
+
+h1, .menu ,.menu a:link,.menu  a:visited {	
+	color:#FFF;
+}
+
+h1,h2,h3 {
+font-family: 'Paytone One', arial, serif;
+}
+
+.border_film {
+	background-image:url('border1.png');
+	width:41px;
+}
+.film_infos {
+	background-color: #FFF;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	width:300px;
+	height:116px;
+}
+
+#container {
+    margin: 0 auto;
+    width: 500px;
+}

@@ -1,0 +1,8 @@
+module github.com/gosecure/movies-site
+
+go 1.15
+
+require golang.org/x/net/http2 v0.0.0-20211112202133-69e39bad7dc2
+require golang.org/x/net/http2/h2c v0.0.0-20211112202133-69e39bad7dc2
+require github.com/go-sql-driver/mysql v1.6.0
+

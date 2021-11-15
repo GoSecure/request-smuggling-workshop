@@ -1,0 +1,3 @@
+go get golang.org/x/net/http2
+go get golang.org/x/net/http2/h2c
+go get github.com/go-sql-driver/mysql

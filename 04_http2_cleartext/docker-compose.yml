@@ -1,0 +1,72 @@
+version: '3'
+services:
+    backend:
+        build:
+            context: .
+            dockerfile: ./backend.Dockerfile
+        ports:
+            - 8000:80
+
+    naxsi:
+        build:
+            context: .
+            dockerfile: ./naxsi.Dockerfile
+        depends_on:
+           - backend
+        volumes:
+            - ./nginx/sites-available/:/etc/nginx/sites-available/
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./nginx/naxsi-errors:/usr/share/nginx/html/naxsi-errors
+            - ./nginx/naxsi_core.rules:/usr/share/naxsi/naxsi_core.rules
+            - ./configs/key.pem:/tmp/key.pem
+            - ./configs/cert.pem:/tmp/cert.pem
+        ports:
+            - 7777:80
+            - 8443:443
+
+    haproxy:
+        image: haproxy:latest
+        expose:
+            - 443
+        ports:
+            - "8001:443"
+        volumes:
+            - ./configs/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+            - ./configs/haproxy.pem:/tmp/haproxy.pem
+        links:
+            - backend
+    nginx:
+        image: nginx:latest
+        expose:
+            - 443
+        ports:
+            - "8002:443"
+        volumes:
+            - ./configs/nginx.conf:/etc/nginx/conf.d/vhost.conf:ro
+            - ./configs/key.pem:/tmp/key.pem
+            - ./configs/cert.pem:/tmp/cert.pem
+        links:
+            - backend
+    nuster:
+        image: nuster/nuster:latest
+        expose:
+            - 80
+            - 443
+        ports:
+            - "8003:443"
+        volumes:
+            - ./configs/nuster.cfg:/etc/nuster/nuster.cfg:ro
+            - ./configs/haproxy.pem:/tmp/haproxy.pem
+        links:
+            - backend
+            - haproxy
+
+    db:
+        image: mysql:8.0.27
+        environment:
+            MYSQL_ROOT_PASSWORD: r00tp4ssw0rd
+            MYSQL_DATABASE: movies_db
+            MYSQL_USER: appuser
+            MYSQL_PASSWORD: apppass
+        ports:
+            - 9906:3306

@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>Super Movie Database</title>
+
+<link href='http://fonts.googleapis.com/css?family=Paytone+One&v1' rel='stylesheet' type='text/css'>
+<link rel="StyleSheet" href="static/style.css"></link>
+
+</head>
+<body>
+
+{{/*{{ printf "%#v" . }}*/}}
+
+<div id="container"><center>
+<h1>Super Movie Database</h1>
+<hr color="white"/>
+<div class="menu"><a href="/">Back to movies listing</a></div>
+<hr color="white"/>
+
+<table class="list_films">
+
+<tr><td class="border_film">
+</td>
+<td class="film_infos" style="width:400px;padding:10px">
+
+
+{{range .Movies}}
+
+<h3>{{.Title}}</h3>
+
+<div style="float:left;margin-right:5px"><img src="static/cover/{{.Cover}}"/></div>
+
+<p>{{.Synopsis}}</p>
+
+<p>Genre: {{.Genre}}<br/>
+Year: {{.Year}}<br/></p>
+
+{{end}}
+    
+    {{if not .Movies}}
+    No movie found or the details are not public yet.
+    {{end}}
+
+</td>
+<td class="border_film">
+</td>
+</tr>
+
+
+</table>
+
+<hr color="white"/>
+
+</center>
+</div>
+
+
+</body>
+</html>
