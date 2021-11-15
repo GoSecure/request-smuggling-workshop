@@ -29,15 +29,15 @@
     
       <google-codelab-step label="Introduction" duration="5">
         <p class="image-container"><img alt="HTTP Request Smuggling Workshop" src="img\\6e6e354ad1ccaeec.png"></p>
-<p>Welcome to the workshop segment of this presention on Request Smuggling. Now is the time to put the theory discussed into practice.</p>
-<p>At the end of the workshop, you will be familiar with four attack variants of HTTP Request Smuggling. You will also have a test environment to experiment further with the attack. All the custom applications and system configurations are open source.</p>
+<p>Welcome to the workshop segment of this presentation on Request Smuggling. Now is the time to put the theory discussed into practice.</p>
+<p>At the end of the workshop, you will be familiar with four attack variants of HTTP Request Smuggling. You will also have a test environment to experiment further with the attack. All the custom applications and system configurations are open-source.</p>
 <h2 is-upgraded>Requirements</h2>
-<p>The only requirement is to have an HTTP interception proxy installed. BurpSuite is the only recommended for its support for HTTP2.</p>
+<p>The only requirement is to have an HTTP interception proxy installed. BurpSuite is the only one recommended  for its support for HTTP2.</p>
 <ul>
 <li><a href="https://portswigger.net/burp" target="_blank">Burp Suite</a></li>
 </ul>
 <h2 is-upgraded>Running the applications</h2>
-<p>In order to do the exercise, you will need to run the <a href="https://github.com/GoSecure/request-smuggling-workshop" target="_blank">lab applications</a> by yourself. All applications were built with a docker container recipe. This should make the deployment easier.</p>
+<p>To do the exercises, you will need to run the <a href="https://github.com/GoSecure/request-smuggling-workshop" target="_blank">lab applications</a> by yourself. All applications were built with a docker container recipe. This should make the deployment easier.</p>
 <ol type="1">
 <li>Download the code. <br><code>$ git clone https://github.com/GoSecure/request-smuggling-workshop<br></code></li>
 <li>Read build instructions (<code>/README.md</code>) from each application. This step will differ for each application.</li>
@@ -55,17 +55,11 @@
     
       <google-codelab-step label="Intro: HTTP Tunneling" duration="6">
         <h2 is-upgraded>HTTP protocol evolution key changes</h2>
-<p>In early version of HTTP (version 1.0 and before), every request is one TCP connection. This method was enough to support simple HTML websites. However, a sophisticated website This generate numerous TCP handshakes</p>
-<ul>
-<li>No connection pool possible</li>
-<li>HTTP/1.1 uses by default persistent connections  <ul>
-<li>Introduce Transfer-Encoding header</li>
-</ul>
-</li>
-</ul>
+<p>In early versions of HTTP (version 1.0 and before), every request is one TCP connection. This method was enough to support simple HTML websites. However, a sophisticated website will required external resources such as images and JavaScript causing numerous TCP handshakes.</p>
+<p>Version 1.1 aimed to improved those weekness. HTTP/1.1 uses by default persistent connections to transmit multiples requests. This version also introduces the <code>Transfer-Encoding</code> header which is key to some HRS attacks. <em>(It will be explained later)</em></p>
 <p class="image-container"><img alt="HTTP Pipeline" src="img\\7ff6991267f25526.png"></p>
 <h2 is-upgraded>Multiple requests in the same TCP socket</h2>
-<p>When a client is requesting multiples resources (Javascript, Images, Pages, Ajax requests), requests can follow each other in the same TCP socket. The outgoing stream would look like the code below.</p>
+<p>When a client is requesting multiple resources (Javascript, Images, Pages, Ajax requests), requests can follow each other in the same TCP socket. The outgoing stream would look like the code below.</p>
 <pre><code>GET /index.php HTTP/1.1
 Host: myapp.com
 Content-Length: 0
@@ -79,46 +73,46 @@ GET /logo.gif HTTP/1.1
 Host: myapp.com
 Content-Length: 0
 </code></pre>
-<p>How does the server knows where a request ends and a new request starts? Easy. A request is made up of a header section and a body section. The headers can have any lenght and are terminated by <code>\r\n</code>. The body section has variable length. In the previous outgoing stream, the server can determine the size of the body section using the <code>Content-Length</code> header.</p>
+<p>How does the server know where a request ends and a new request starts? Easy. A request is made up of a header section and a body section. The headers can have any length and are terminated by <code>\r\n</code>. The body section has variable length. In the previous outgoing stream, the server can determine the size of the body section using the <code>Content-Length</code> header.</p>
 <h2 is-upgraded>Where is the confusion?</h2>
-<p>Confusion appears when the proxy and the backend server do not agree on the size of each request. This is because these systems may have HTTP parsers which have a slightly different implementation. As soon as a parser is more flexible when implementing the protocol, it can potentially be abuse.</p>
-<p>In a typical scalable web infrastructure, a proxy will place in front of the backend. The proxy is forwarding request to the backend with the intent to add functionnality such as caching, firewall or load balancing.</p>
+<p>The confusion appears when the proxy and the backend server do not agree on the size of each request. This is because these systems may have HTTP parsers that have a slightly different implementation. As soon as a parser is more flexible when implementing the protocol, it can potentially be abused.</p>
+<p>In a typical scalable web infrastructure, a proxy will place in front of the backend. The proxy is forwarding a request to the backend with the intent to add functionality such as caching, firewall, or load balancing.</p>
 <p class="image-container"><img alt="Proxy Backend Infrastructure" src="img\\217b540954d553d9.png"></p>
 
 
       </google-codelab-step>
     
       <google-codelab-step label="Intro: HRS evolution" duration="2">
-        <p>The research on HRS has evolve over the past 15 years. While this vulnerability class is not exactly new, most of the development on the topic happen from 2019 to 2021.</p>
-<h2 is-upgraded>Key researchs</h2>
+        <p>The research on HRS has evolved over the past 15 years. While this vulnerability class is not exactly new, most of the development on the topic happens from 2019 to 2021.</p>
+<h2 is-upgraded>Key researches</h2>
 <h3 is-upgraded>2004: <a href="https://dl.packetstormsecurity.net/papers/general/whitepaper_httpresponse.pdf" target="_blank">HTTP Response Splitting, Web Cache Poisoning Attacks, and Related Topics</a></h3>
 <p><em>by Amit Klein</em></p>
-<p>This first paper demonstrate the impact of desynchronizing response in an HTTP stream. While this is not Request Smuggling per say, it has very similar effects and impacts.</p>
+<p>This first paper demonstrates the impact of desynchronizing response in an HTTP stream. While this is not Request Smuggling per say, it has very similar effects and impacts.</p>
 <h3 is-upgraded>2005: <a href="https://doc.lagout.org/Others/EN-HTTP-Request-Smuggling.pdf" target="_blank">HTTP request smuggling</a></h3>
 <p><em>by Chaim Linhart, Amit Klein, Ronen Heled and Steve Orrin</em></p>
-<p>The &#34;HTTP Request Smuggling&#34; paper was the first to document the impacts of desynchronizing the HTTP pipeline. Those impact include Web Cache Poisoning, Firewall/IPS/IDS evaion, Request Hijacking and Request Credential Hijacking.</p>
+<p>The &#34;HTTP Request Smuggling&#34; paper was the first to document the impacts of desynchronizing the HTTP pipeline. Those impacts include Web Cache Poisoning, Firewall/IPS/IDS evasion and Request Hijacking.</p>
 <h3 is-upgraded>2016: <a href="https://media.defcon.org/DEF%20CON%2024/DEF%20CON%2024%20presentations/DEF%20CON%2024%20-%20Regilero-Hiding-Wookiees-In-Http.pdf" target="_blank">Hiding Wookiees in HTTP</a></h3>
 <p><em>by Regis Leroy (@regilero)</em></p>
-<p>Multiples new variants were presented including newline confusion <code>\n</code> / <code>\r\n</code>, HTTP 0.9, typo in <code>Transfer-Encoding</code>, integer overflow for <code>Content-Length</code> and attribute truncation. The tool HTTPWookie was release to test proxies.</p>
+<p>Multiple new variants were presented including newline confusion <code>\n</code> / <code>\r\n</code>, HTTP 0.9, typo in <code>Transfer-Encoding</code>, integer overflow for <code>Content-Length</code> and attribute truncation. The tool HTTPWookie was release to test proxies.</p>
 <h3 is-upgraded>2019: <a href="https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn" target="_blank">HTTP Desync Attacks: Request Smuggling Reborn</a></h3>
 <p><em>by James Kettle</em></p>
-<p>In this article and research, James Kettle identify numerous variations with the header <code>Transfer-Encoding</code>. Along the paper release, a Burp plugin named <a href="https://portswigger.net/bappstore/aaaa60ef945341e8a450217a54a11646" target="_blank">HTTP Request Smuggler</a> was release.</p>
+<p>In this article and research, James Kettle identifies numerous variations with the header <code>Transfer-Encoding</code>. Along the paper release, a Burp plugin named <a href="https://portswigger.net/bappstore/aaaa60ef945341e8a450217a54a11646" target="_blank">HTTP Request Smuggler</a> was released.</p>
 <h3 is-upgraded>2019: <a href="https://github.com/0ang3el/websocket-smuggle" target="_blank">Smuggling HTTP requests over fake WebSocket connection</a></h3>
 <p><em>by Mikhail Egorov (@0ang3el)</em></p>
-<p>This research introduce a very different approach to request smuggling. It does not involve a complete desynchronisation of HTTP tunneling. Instead, it hides an HTTP/1.1 request inside - what appears to the proxy - a valid websocket stream.</p>
+<p>This research introduces a very different approach to request smuggling. It does not involve a complete desynchronization of HTTP tunneling. Instead, it hides an HTTP/1.1 request inside an &#34;invalid&#34; WebSocket stream.</p>
 <h3 is-upgraded>2020: <a href="https://bishopfox.com/blog/h2c-smuggling-request" target="_blank">h2c Smuggling: Request Smuggling Via HTTP/2 Cleartext (h2c)</a></h3>
 <p><em>by Jake Miller (@theBumbleSec)</em></p>
-<p>Inspired by the WebSocket technique, Jake Miller found a new variant that abuse the capabilities of some backend application to support HTTP2 Cleartext procotol. This mode is started as a HTTP/1 over TLS. It then switch to a HTTP/2 after an upgrade request similar to the one use in WebSocket communication.</p>
+<p>Inspired by the WebSocket technique, Jake Miller found a new variant that abuse the capabilities of some backend application to support HTTP2 Cleartext protocol. This mode is started as a HTTP/1 over TLS. It then switches to a HTTP/2 after an upgrade request similar to the one used in WebSocket communication.</p>
 <h3 is-upgraded>2021: <a href="https://portswigger.net/research/http2" target="_blank">HTTP/2: The Sequel is Always Worse</a></h3>
 <p><em>by James Kettle</em></p>
-<p>This latest development introduce implementation mistakes from proxy that proxy from HTTP/2 to HTTP/1. The support for TLS or HTTP2 is often delegate to the load balancer. This facilitate the deployment of web applications. If the web application containers (NodeJS, .NET core, Jetty, Tomcat, etc) does not support HTTP/2, the proxy needs to convert HTTP/2 request headers to the HTTP/1 procotol. This conversion is subject to error if the HTTP/2 are not validate strictly.</p>
+<p>This recent development introduces implementation mistakes from a proxy that proxy from HTTP/2 to HTTP/1. The support for TLS or HTTP2 is often delegated to the load balancer. This facilitate the deployment of web applications. If the web application containers (NodeJS, .NET core, Jetty, Tomcat, etc) does not support HTTP/2, the proxy needs to convert HTTP/2 request headers to the HTTP/1 protocol. This conversion is subject to error if the HTTP/2 are not validated strictly.</p>
 
 
       </google-codelab-step>
     
       <google-codelab-step label="HTTP/1.1 CL.CL" duration="6">
         <h2 is-upgraded>Duplicate Content-Length (CL.CL)</h2>
-<p>The first edge case that was documented was the use of two <code>Content-Length</code> headers with conflicting values. This cause issue when the proxy and the backend do not use the same value. How can this be possible? Because the parser are implemented differently, implementation might keep the state of each header in a map and the behavior when a duplicate header is seen will differ.</p>
+<p>The first edge case that was documented was the use of two <code>Content-Length</code> headers with conflicting values. This cause issue when the proxy and the backend do not use the same value. How can this be possible? Because the parsers are implemented differently, one implementation might keep the last seen header while an other could keep the first one.</p>
 <p><em>Implementation where the last value is kept</em></p>
 <pre><code language="language-python" class="language-python">headers = {}
 for line : httpRequest
@@ -140,19 +134,19 @@ for line : httpRequest
 <h2 is-upgraded>Cache poisoning</h2>
 <p>In the diagram below, we can see that proxy is not interpreting the correct resource served by the web application.</p>
 <p class="image-container"><img alt="Cache poisoning" src="img\\2c39fbd6b3252fe1.png"></p>
-<h2 is-upgraded>Their is more...</h2>
-<p>This scenario is probably the easiest to understand. This is why it was presented first. However, the length of request is <strong>not defined only by Content-Length</strong>. HTTP has evolve greatly and has multiple headers that cover similar feature.</p>
+<h2 is-upgraded>There is more...</h2>
+<p>This scenario is probably the easiest to understand. This is why it was presented first. However, the length of the request is <strong>not defined only by Content-Length</strong>. HTTP has evolved greatly and has multiple headers that cover similar features.</p>
 
 
       </google-codelab-step>
     
       <google-codelab-step label="HTTP/1.1 CL.TE" duration="6">
         <h2 is-upgraded>HTTP/1.1 Content-Length Transfer-Encoding (CL.TE)</h2>
-<p><code>Content-Length</code> is not the only that can be use in an HTTP/1.1 request.</p>
+<p><code>Content-Length</code> is not the only one that can be used in an HTTP/1.1 request.</p>
 <h2 is-upgraded>Chunked encoding</h2>
 <p>&#34;Chunked encoding is useful when larger amounts of data are sent to the client and the total size of the response may not be known until the request has been fully processed.&#34;</p>
 <p>Ref: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding" target="_blank">Mozilla.org: Transfer-Encoding</a></p>
-<p>It can be use to serve large file that generated on the fly. The format is as follow the length in hexadecimal follow by the bytes buffer (chunk).</p>
+<p>It can be used to serve large files generated on the fly. An example can be seen below. The length is in hexadecimal followed by the bytes &#34;chunk&#34;.</p>
 <pre><code>HTTP/1.1 200 OK
 Content-Type: text/plain
 Transfer-Encoding: chunked
