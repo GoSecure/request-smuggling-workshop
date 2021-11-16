@@ -175,15 +175,11 @@ Conference!\r\n
 \r\n
 </code></pre>
 <h2 is-upgraded>Content-Length vs Transfer-Encoding</h2>
-<p>The server now has an additional dilema if both <code>Content-Length</code> and <code>Transfer-Encoding</code>. Luckily, the HTTP/1.1 RFC is</p>
-<p>&#34;If a message is received with both a Transfer-Encoding header field and a Content-Length header field, the latter MUST be ignored.&#34;</p>
-<ul>
-<li>RFC2616  <ul>
-<li><code>Transfer-Encoding</code> should be taken in priority.</li>
-<li><code>Transfer-Encoding</code> might not be implemented by both service.</li>
-</ul>
-</li>
-</ul>
+<p>The server now has an additional dilemma if both <code>Content-Length</code> and <code>Transfer-Encoding</code>. Luckily, the HTTP/1.1 RFC is describing the expected scenario.</p>
+<p>&#34;If a message is received with both a Transfer-Encoding header field and a Content-Length header field, the latter MUST be ignored.&#34; Ref: <a href="https://datatracker.ietf.org/doc/html/rfc2616" target="_blank">RFC2616 - HTTP/1.1</a></p>
+<p><code>Transfer-Encoding</code> must be used first.</p>
+<aside class="warning"><p>However <code>Transfer-Encoding</code> might not be supported by both services. In 2021, that would be a major oversight.</p>
+</aside>
 
 
       </google-codelab-step>
@@ -201,10 +197,10 @@ Transfer-Encoding: chunked
 
 G
 </code></pre>
-<aside class="warning"><p>We need to repeat the following request multiple times. It is a</p>
+<aside class="warning"><p>We need to repeated the following request multiple times. It is a</p>
 </aside>
 <h2 is-upgraded>Finding a XSS vector</h2>
-<p>There are two main vectors to execute Javascript on system vulnerable to HRS.</p>
+<p>There are two main vectors to execute Javascript on a system vulnerable to HRS.</p>
 <ul>
 <li>Causing an open-redirect</li>
 <li>Transforming a reflected XSS in a persistent XSS.</li>
@@ -233,12 +229,11 @@ Foo:
     
       <google-codelab-step label="WebSocket HRS" duration="0">
         <h2 is-upgraded>Web Socket in a nutshell</h2>
-<p>WebSocket communication is full-duplex communication that takes places inside a HTTP/1. While typical HTTP/1 messages can be sent in full-duplex, classic HTTP require all messages to have a headers and body section. WebSocket allows lightweight communication along with the control over the Socket with Javascript.</p>
+<p>WebSocket communication is full-duplex communication that takes place inside a HTTP/1. While typical HTTP/1 messages can be sent in full-duplex, classic HTTP require all messages to have a headers and body section. WebSocket allows lightweight communication along with the control over the Socket with Javascript.</p>
 <p class="image-container"><img alt="h2c sequence diagram" src="img\\831e0a0bd13d2ca8.png"></p>
-<h2 is-upgraded>Request Smuggling oppotunity</h2>
-<p>It would not be possible to pass an HTTP/1 request once the WebSocket protocol has been establish. Once the upgrade is done the receiving application will see incoming traffic as bytes. (Add note regarding encryption)</p>
-<p>It is however possible to initiate an incomplete Upgrade request that would fail. If the proxy has a &#34;naive&#34; WebSocket support implementation, it will not at the server response to evaluate if the upgrade succeed. Using this request failure, it is now possible to pass additional request to the server. Since it is not in WebSocket mode, it will process the following byte stream as normal HTTP/1.</p>
-<p>TODO: Maybe WebSocket diagram</p>
+<h2 is-upgraded>Request Smuggling opportunity</h2>
+<p>It would not be possible to pass an HTTP/1 request once the WebSocket protocol has been established. Once the upgrade is done the receiving application will see incoming traffic as bytes. (Add note regarding encryption)</p>
+<p>It is however possible to initiate an incomplete Upgrade request that would fail. If the proxy has a &#34;naive&#34; WebSocket support implementation, it will not at the server response to evaluate if the upgrade succeeds. Using this request fails, it is now possible to pass an additional request to the server. Since it is not in WebSocket mode, it will process the following byte stream as normal HTTP/1.</p>
 <p><strong>References:</strong></p>
 <ul>
 <li><a href="https://github.com/0ang3el/websocket-smuggle" target="_blank">Smuggling HTTP requests over fake WebSocket connection</a> by 0ang3el</li>
@@ -257,12 +252,9 @@ Foo:
 <h2 is-upgraded>HTTP 2 Handshake Sequence</h2>
 <p class="image-container"><img alt="h2c sequence diagram" src="img\\9c1af04a41ae7fe4.png"></p>
 <h2 is-upgraded>Potential abuses</h2>
-<p>Just like the technique with the WebSocket upgrade, it is possible to create request that will not analyzed by the load balancer. Any special processing such as URL filtering could be bypass.</p>
-<ul>
-<li>URL filtering bypass</li>
-<li>WAF bypass</li>
-</ul>
-<p><em>References:</em></p>
+<p>Just like the technique with the WebSocket upgrade, it is possible to create a request that will not be analyzed by the load balancer. Any special processing such as URL filtering could be bypassed.</p>
+<p>It can also be an opportunity for an attacker to bypass a Web Application Firewall. We are going to this scenario in practice in the fourth exercise.</p>
+<p><strong>References:</strong></p>
 <ul>
 <li>https://labs.bishopfox.com/tech-blog/h2c-smuggling-request-smuggling-via-http/2-cleartext-h2c</li>
 <li>https://blog.assetnote.io/2021/03/18/h2c-smuggling/</li>
@@ -274,7 +266,7 @@ Foo:
     
       <google-codelab-step label="LAB 4: Upgrade to HTTP/2 cleartext" duration="25">
         <h2 is-upgraded>Scenario 1: Bypassing WAF</h2>
-<p>Visit <code>http://localhost:8001/movie_detail?id=1</code>. If you attempt to tamper the parameter <code>id</code>, you will see that it is filtered by a Web Application Firewall. In this case, NAXSI is configured in front of the web application. Exploiting some vulnerabilities can be much harder <em>(see impossible)</em> when a strong firewall is in place. By default, NAXSI is configured to block all quotes <code>'</code> characters. However with the HTTP 2 Cleartext passthrough we just learned, it is possible to send requests that would not be seen by the firewall.</p>
+<p>Visit <code>http://localhost:8001/movie_detail?id=1</code>. If you attempt to tamper with the parameter <code>id</code>, you will see that it is filtered by a Web Application Firewall. In this case, NAXSI is configured in front of the web application. Exploiting some vulnerabilities can be much harder <em>(see impossible)</em> when a strong firewall is in place. By default, NAXSI is configured to block all quotes <code>'</code> characters. However, with the HTTP 2 Cleartext passthrough we just learned, it is possible to send requests that would not be seen by the firewall.</p>
 <h2 is-upgraded>Validation</h2>
 <p>First, we need to validate that HTTP2 cleartext is supported by the backend. If the backend application does not support it, this technique will not work.</p>
 <pre><code>python h2csmuggler.py -x https://127.0.0.1:8443 -t
@@ -285,7 +277,7 @@ Foo:
 <p>When testing for SQL injection, a tester will be blocked right away by the Web Application Firewall in place.</p>
 <p><code>http://127.0.0.1/movie?id=1'</code> (see single quote at the end)</p>
 <p class="image-container"><img alt="NAXSI" src="img\\1720e65486903174.png"></p>
-<p>We can use the HTTP2 technique to establish a HTTP tunnel with the application directly that will not be interpreted by most proxies.</p>
+<p>We can use the HTTP2 technique to establish an HTTP tunnel with the application directly that will not be interpreted by most proxies.</p>
 <pre><code>python h2csmuggler.py -x https://127.0.0.1:8443 &#34;http://127.0.0.1/movie?id=1&#39;&#34;
 [INFO] h2c stream established successfully.
 :status: 200
@@ -301,7 +293,7 @@ Foo:
 [...]
 </code></pre>
 <h2 is-upgraded>Scenario 2: Acessing forbidden /admin page</h2>
-<p>The same infrastructure to test proxy-level access bypass. The application has administrative page that is intended only for system administrator. The control is inforced by the proxy. Therefor, if one request is not interpret by the proxy, the access control will not be inforced.</p>
+<p>The same infrastructure to test proxy-level access bypass. The application has an administrative page that is intended only for system administrators. The control is enforced by the proxy. Therefore, if one request is not interpreted by the proxy, the access control will not be enforced.</p>
 <pre><code>python h2csmuggler.py -x https://127.0.0.1:8001 http://127.0.0.1/admin&#39;
 [INFO] h2c stream established successfully.
 :status: 200
@@ -309,7 +301,7 @@ Foo:
 [INFO] Requesting - /admin&#39;
 [...]
 </code></pre>
-<p>This lab allows you to exploit the same vulnerability  on 3 proxies.</p>
+<p>This lab allows you to exploit the same vulnerability on 3 proxies.</p>
 <table>
 <tr><td colspan="1" rowspan="1"><p>TCP port</p>
 </td><td colspan="1" rowspan="1"><p>Description</p>
@@ -332,9 +324,9 @@ Foo:
       </google-codelab-step>
     
       <google-codelab-step label="Conclusion" duration="2">
-        <p>Request Smuggling is a vulnerability that had numerous new developments in recent history. It will continues to exists as long as new variations are found and new HTTP parsers are implemented with similar mistakes.</p>
+        <p>Request Smuggling is a vulnerability that had numerous new developments in recent history. It will continue to exist as long as new variations are found and new HTTP parsers are implemented with similar mistakes.</p>
 <p>If you are interested in testing your application infrastructure, <a href="https://portswigger.net/bappstore/aaaa60ef945341e8a450217a54a11646" target="_blank">HTTP Request Smuggler</a> seems to be the most complete test suite at the moment.</p>
-<p>If you like the format of this workshop, we have produces three free workshops that can also be completed at your own paces.</p>
+<p>If you like the format of this workshop, we have produced three free workshops that can also be completed at your pace.</p>
 <p><a href="https://gosecure.github.io/xxe-workshop/" target="_blank"><img alt="XXE Workshop" src="img\\b24171361cccb5ea.png"></a> <a href="https://gosecure.github.io/presentations/2020-05-15-advanced-binary-analysis/" target="_blank"><img alt="Binary Analysis Workshop" src="img\\2a5e6e709ef3d3c7.png"></a> <a href="https://gosecure.github.io/template-injection-workshop/" target="_blank"><img alt="Template Injection Workshop" src="img\\4889f8a64bc5cd91.png"></a></p>
 <h2 is-upgraded>Documentation References</h2>
 <ul>
