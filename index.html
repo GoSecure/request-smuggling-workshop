@@ -200,7 +200,7 @@ Transfer-Encoding: chunked
 
 G
 </code></pre>
-<aside class="warning"><p>We need to repeated the following request multiple times. It is a</p>
+<aside class="warning"><p>We need to repeated the following request multiple times. It is the result of connection pool usage between the proxy and the backend. There is more than one connection that are kept alive.</p>
 </aside>
 <h2 is-upgraded>Finding a XSS vector</h2>
 <p>There are two main vectors to execute Javascript on a system vulnerable to HRS.</p>
