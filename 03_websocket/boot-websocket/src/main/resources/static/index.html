@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Chat Application</title>
+    <link href="/bootstrap.min.css" rel="stylesheet">
+    <link href="/style.css" rel="stylesheet">
+    <script src="/jquery-1.10.2.min.js"></script>
+    <script src="/app.js"></script>
+</head>
+<body>
+<div id="main-content" class="container">
+
+    <div class="row">
+        <div class="col-md-12">
+            <table id="chat">
+                <thead>
+                <tr>
+                    <th>Welcome to tech support. Please enter your message:</th>
+                </tr>
+                </thead>
+                <tr>
+                    <td><img src="technical-support.jpg"></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                </tr>
+                <tbody id="helloworldmessage">
+                </tbody>
+            </table>
+
+
+
+        </div>
+
+
+<!--        <div class="row">-->
+<!--            <div class="col-md-12">-->
+<!--                <form class="form-inline">-->
+<!--                    <div class="form-group">-->
+<!--                        <label for="connect">Chat Application:</label>-->
+<!--                        <button id="connect" type="button">Start New Chat</button>-->
+<!--&lt;!&ndash;                        <button id="disconnect" type="button" disabled="disabled">End Chat&ndash;&gt;-->
+<!--&lt;!&ndash;                        </button>&ndash;&gt;-->
+<!--                    </div>-->
+<!--                </form>-->
+<!--            </div>-->
+<!--        </div>-->
+
+        <div class="row">
+
+
+
+
+            <div class="col-md-6">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <textarea id="user" placeholder="Write your message here..." cols="50" required></textarea>
+                    </div>
+                    <button id="send" type="submit">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+ 
+</div>
+</body>
+</html>
