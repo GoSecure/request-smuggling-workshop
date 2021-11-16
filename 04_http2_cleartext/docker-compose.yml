@@ -68,5 +68,7 @@ services:
             MYSQL_DATABASE: movies_db
             MYSQL_USER: appuser
             MYSQL_PASSWORD: apppass
+        volumes:
+            - ./mysql_init.sql:/docker-entrypoint-initdb.d/mysql_init.sql
         ports:
             - 9906:3306
