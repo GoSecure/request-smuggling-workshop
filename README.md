@@ -1,7 +1,7 @@
 
-## Template Injection Workshop
+## HTTP Request Smuggling Workshop
 
-This repository includes all the test applications presented at GoSec 2021.
+This repository includes all the test applications presented at GoSec, Intent and Hackfest 2021.
 
 ### Running the application yourself
 
