@@ -50,7 +50,7 @@
       <google-codelab-step label="Intro: HTTP Tunneling" duration="6">
         <h2 is-upgraded>HTTP protocol evolution</h2>
 <p>In early versions of HTTP (version 1.0 and before), every request is one TCP connection. This method was enough to support simple HTML websites. However, a sophisticated website will required external resources such as images and JavaScript causing numerous TCP handshakes.</p>
-<p>Version 1.1 aimed to improved those weekness. HTTP/1.1 uses by default persistent connections to transmit multiples requests. This version also introduces the <code>Transfer-Encoding</code> header which is key to some HRS attacks. <em>(It will be explained later)</em></p>
+<p>Version 1.1 aimed to improved those weekness. HTTP/1.1 uses by default persistent connections to transmit multiples requests. This version also introduced the <code>Transfer-Encoding</code> header which is key to some HRS attacks. <em>(It will be explained later)</em></p>
 <p class="image-container"><img alt="HTTP Pipeline" src="img\\7ff6991267f25526.png"></p>
 <h2 is-upgraded>Multiple requests in the same TCP socket</h2>
 <p>When a client is requesting multiple resources (Javascript, Images, Pages, Ajax requests), requests can follow each other in the same TCP socket. The outgoing stream would look like the code below.</p>
