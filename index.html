@@ -144,7 +144,7 @@ Conference!\r\n
 <p>The server now has an additional dilemma if both <code>Content-Length</code> and <code>Transfer-Encoding</code> are present. Which one should be used? Luckily, the HTTP/1.1 RFC is describing the expected scenario.</p>
 <aside class="special"><p>&#34;If a message is received with both a Transfer-Encoding header field and a Content-Length header field, the latter MUST be ignored.&#34; Ref: <a href="https://datatracker.ietf.org/doc/html/rfc2616" target="_blank">RFC2616 - HTTP/1.1</a></p>
 </aside>
-<p><code>Transfer-Encoding</code> must be used first instead of Content-Length. However <code>Transfer-Encoding</code> might not be supported by both services. In 2021, that would be a major oversight.</p>
+<p><code>Transfer-Encoding</code> must be used instead of Content-Length. However <code>Transfer-Encoding</code> might not be supported by both services. In 2021, that would be a major oversight.</p>
 
 
       </google-codelab-step>
