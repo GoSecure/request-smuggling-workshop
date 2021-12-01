@@ -155,7 +155,7 @@ Conference!\r\n
 </code></pre>
 <p>Open <code>http://simplewebsite.gosec.co</code> in a browser to confirm that everything is running.</p>
 <h2 is-upgraded>HRS detection</h2>
-<p>The following request need to repeated ~10 times until you get <code>405 Not Allowed</code> (Method not allowed)</p>
+<p>The following request needs to repeated ~10 times until you get <code>405 Not Allowed</code> (Method not allowed).</p>
 <pre><code>POST / HTTP/1.1
 Host: simplewebsite.gosec.co
 Content-Length: 79
@@ -165,14 +165,15 @@ Transfer-Encoding: chunked
 
 G
 </code></pre>
-<aside class="warning"><p>We need to repeated the following request multiple times. It is the result of connection pool usage between the proxy and the backend. There is more than one connection that are kept alive.</p>
+<aside class="warning"><p><strong>Note:</strong> We need to repeated the following request multiple times. It is the result of connection pool usage between the proxy and the backend. There is more than one connection that are kept alive.</p>
 </aside>
 <h2 is-upgraded>Finding a XSS vector</h2>
 <p>There are two main vectors to execute Javascript on a system vulnerable to HRS.</p>
-<ul>
-<li>Causing an open-redirect</li>
+<ol type="1">
+<li>Causing an open-redirect to a malicious Javascript file.</li>
 <li>Transforming a reflected XSS in a persistent XSS.</li>
-</ul>
+</ol>
+<p>The first vector aims at highjacking the response intended for a request to a JavaScript resource while the second one is targeting requests to HTML pages.</p>
 <h2 is-upgraded>From limited to persistent XSS</h2>
 <p>Injecting an HTTP request in the proxy pipeline.</p>
 <pre><code>POST / HTTP/1.1
