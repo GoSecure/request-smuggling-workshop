@@ -194,7 +194,7 @@ Foo:
 <p>Once this is sent. Refresh the home page or any page on the website until it is placed after the previous malicious request.</p>
 <p>You should see the XSS trigger.</p>
 <p class="image-container"><img alt="XSS alert trigged" src="img\\bf7533174bb07548.png"></p>
-<aside class="special"><p><strong>Note:</strong> The request page by the victim was the home page but, the render page is the contact page with the XSS. Any page would have trigged the XSS.</p>
+<aside class="special"><p><strong>Note:</strong> The requested page by the victim was the home page but, the render page is the contact page with the XSS. Any page would have trigged the XSS.</p>
 </aside>
 <p>The docker log can confirm that the backend (here nginx server) is seeing a POST and a GET request.</p>
 <pre><code>nginx_1  | 172.20.0.4 - - [01/Dec/2021:18:40:04 +0000] &#34;POST / HTTP/1.1&#34; 200 1930 &#34;-&#34; &#34;-&#34; &#34;172.20.0.1&#34;
@@ -216,7 +216,6 @@ nginx_1  | 172.20.0.4 - - [01/Dec/2021:18:41:29 +0000] &#34;GET / HTTP/1.1&#34; 
 <p><strong>HTTP/2 Message</strong></p>
 <p>Original H2 message:</p>
 <table>
-<tr><td colspan="2" rowspan="1"></td><td colspan="1" rowspan="1"></td></tr>
 <tr><td colspan="1" rowspan="1"><p><strong>:method</strong></p>
 </td><td colspan="1" rowspan="1"><p><code>POST</code></p>
 </td></tr>
@@ -230,7 +229,7 @@ nginx_1  | 172.20.0.4 - - [01/Dec/2021:18:41:29 +0000] &#34;GET / HTTP/1.1&#34; 
 </td><td colspan="1" rowspan="1"><p><code>application/x-www-form-urlencoded</code></p>
 </td></tr>
 <tr><td colspan="2" rowspan="1"><p><code>author=hackfest&message=Hello</code></p>
-</td><td colspan="1" rowspan="1"></td></tr>
+</td></tr>
 </table>
 <p><strong>HTTP/1 Message</strong></p>
 <p>Converted H1 message:</p>
@@ -246,37 +245,47 @@ author=hackfest&amp;message=Hello
 <p>However, an attacker could inject header in a HTTP/2 frame with the intention to confuse the final request built.</p>
 <p>For example, here is a malicious HTTP/2 message converted to HTTP/1.</p>
 <p><strong>HTTP/2 Message</strong></p>
+<p>The malicious HTTP/2 request will be structured this way. It has an additional <code>content-length</code> header and a HTTP/1 request injected in the data frame (body).</p>
 <table>
 <tr><td colspan="1" rowspan="1"><p><strong>:method</strong></p>
-</td><td colspan="1" rowspan="1"><p>`POST`</p>
+</td><td colspan="1" rowspan="1"><p><code>POST</code></p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><strong>:path</strong></p>
-</td><td colspan="1" rowspan="1"><p>`/api/postMessage`</p>
+</td><td colspan="1" rowspan="1"><p><code>/api/postMessage</code></p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><strong>:authority</strong></p>
-</td><td colspan="1" rowspan="1"><p>`service.company.com`</p>
+</td><td colspan="1" rowspan="1"><p><code>service.company.com</code></p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><strong>content-type</strong></p>
-</td><td colspan="1" rowspan="1"><p>`application/x-www-form-urlencoded`</p>
+</td><td colspan="1" rowspan="1"><p><code>application/x-www-form-urlencoded</code></p>
 </td></tr>
 <tr><td colspan="1" rowspan="1"><p><strong>content-length</strong></p>
-</td><td colspan="1" rowspan="1"><p>`6`</p>
+</td><td colspan="1" rowspan="1"><p><code>6</code></p>
 </td></tr>
-<tr><td colspan="2" rowspan="1"><p><code><br>test=XGET /private/debug HTTP/1.1<br>Host: 127.0.0.1<br><br></code></p>
+<tr><td colspan="2" rowspan="1"><p><code>test=XGET /private/path HTTP/1.1<br>Host: 127.0.0.1<br><br></code></p>
 </td></tr>
 </table>
-<p><strong>HTTP/1 Message</strong></p>
+<p><strong>HTTP/1 Messages</strong></p>
+<p>The proxy connecting to various HTTP/1 services will need to convert the requests. The previous HTTP/2 will form the following bytes stream. This byte stream will be interpreted as two requests by most backend.</p>
 <pre><code>POST /api/postMessage HTTP/2
 Host: service.company.com
 Content-Length: 6
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-test=XGET /private/debug HTTP/1.1
+test=X
+</code></pre>
+<pre><code>GET /private/path HTTP/1.1
 Host: 127.0.0.1:80
 
 
 </code></pre>
+<p>Now, let&#39;s see it in action.</p>
 
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="LAB 2: HTTP/2 (TODO)" duration="20">
+        
 
       </google-codelab-step>
     
