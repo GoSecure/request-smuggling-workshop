@@ -110,8 +110,8 @@ for line : httpRequest
         <h2 is-upgraded>HTTP/1.1 Content-Length Transfer-Encoding (CL.TE)</h2>
 <p><code>Content-Length</code> is not the only one that can be used in an HTTP/1.1 request.</p>
 <h2 is-upgraded>Chunked encoding</h2>
-<p>&#34;Chunked encoding is useful when larger amounts of data are sent to the client and the total size of the response may not be known until the request has been fully processed.&#34;</p>
-<p>Ref: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding" target="_blank">Mozilla.org: Transfer-Encoding</a></p>
+<aside class="special"><p>&#34;Chunked encoding is useful when larger amounts of data are sent to the client and the total size of the response may not be known until the request has been fully processed.&#34; Ref: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding" target="_blank">Mozilla.org: Transfer-Encoding</a></p>
+</aside>
 <p>It can be used to serve large files generated on the fly. An example can be seen below. The length is in hexadecimal followed by the bytes &#34;chunk&#34;.</p>
 <pre><code>HTTP/1.1 200 OK
 Content-Type: text/plain
@@ -141,11 +141,10 @@ Conference!\r\n
 \r\n
 </code></pre>
 <h2 is-upgraded>Content-Length vs Transfer-Encoding</h2>
-<p>The server now has an additional dilemma if both <code>Content-Length</code> and <code>Transfer-Encoding</code>. Luckily, the HTTP/1.1 RFC is describing the expected scenario.</p>
-<p>&#34;If a message is received with both a Transfer-Encoding header field and a Content-Length header field, the latter MUST be ignored.&#34; Ref: <a href="https://datatracker.ietf.org/doc/html/rfc2616" target="_blank">RFC2616 - HTTP/1.1</a></p>
-<p><code>Transfer-Encoding</code> must be used first.</p>
-<aside class="warning"><p>However <code>Transfer-Encoding</code> might not be supported by both services. In 2021, that would be a major oversight.</p>
+<p>The server now has an additional dilemma if both <code>Content-Length</code> and <code>Transfer-Encoding</code> are present. Which one should be used? Luckily, the HTTP/1.1 RFC is describing the expected scenario.</p>
+<aside class="special"><p>&#34;If a message is received with both a Transfer-Encoding header field and a Content-Length header field, the latter MUST be ignored.&#34; Ref: <a href="https://datatracker.ietf.org/doc/html/rfc2616" target="_blank">RFC2616 - HTTP/1.1</a></p>
 </aside>
+<p><code>Transfer-Encoding</code> must be used first instead of Content-Length. However <code>Transfer-Encoding</code> might not be supported by both services. In 2021, that would be a major oversight.</p>
 
 
       </google-codelab-step>
