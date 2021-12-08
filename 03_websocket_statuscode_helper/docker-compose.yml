@@ -1,0 +1,9 @@
+version: '3'
+services:
+
+  httpstatus101:
+    image: php:8.0.13-apache
+    volumes:
+      - ./html/:/var/www/html/
+    ports:
+      - "8888:80"

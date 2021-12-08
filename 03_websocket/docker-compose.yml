@@ -9,6 +9,7 @@ services:
         expose:
             - 8081
 
+
     #NGINX proxy
     nginx:
         image: nginx:1.17.6
