@@ -9,8 +9,7 @@ services:
     ports:
       - "8443:8443"
     
-    
-    
+
   webmain:
     image: php:8.0.13-apache
     volumes:
@@ -24,18 +23,3 @@ services:
       - ./webstatic/:/var/www/html/
     ports:
       - "8002:80"
-
-  # webstatic:
-    # build:
-      # context: .
-      # dockerfile: ./Dockerfile-static
-    # environment:
-      # - "GUNICORN_CMD_ARGS=--capture-output --error-logfile=error.log --access-logfile=access.log --access-logformat '%(h)s %(t)s %(r)s %(s)s Host: %({Host}i)s}'"
-    # ports:
-      # - "8002:80"
-
-
-  # webmain:
-    # image: kennethreitz/httpbin
-    # environment:
-      # - "GUNICORN_CMD_ARGS=--capture-output --error-logfile=- --access-logfile=- --access-logformat '%(h)s %(t)s %(r)s %(s)s Host: %({Host}i)s}'"
