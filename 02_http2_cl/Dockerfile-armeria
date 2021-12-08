@@ -1,0 +1,7 @@
+FROM frolvlad/alpine-java
+VOLUME /tmp
+
+
+COPY armeria/vulnerable-armeria-all.jar proxy.jar
+RUN sh -c 'touch /proxy.jar'
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/proxy.jar"]
