@@ -35,11 +35,13 @@
     
       <google-codelab-step label="Introduction" duration="5">
         <p class="image-container"><img alt="HTTP Request Smuggling Workshop" src="img\\212c69273a3e36c3.png"></p>
-<p>Welcome to this workshop on Request Smuggling. It is an opportunity to experiment with the vulnerability with realistic infrastructures. At the end of the workshop, you will be familiar with four attack variants of HTTP Request Smuggling. You will also have a test environment to experiment further with the attack. All the custom applications and system configurations are open-source.</p>
+<p>Welcome to this workshop on HTTP Request Smuggling (HRS). It is an opportunity to experiment with the vulnerability with realistic applications and infrastructures. At the end of the workshop, you will be familiar with four attack variants of HTTP Request Smuggling. You will also have a test environment to experiment further with the attack. All the custom applications and system configurations are open-source.</p>
 <h2 is-upgraded>Requirements</h2>
-<p>The only requirement is to have an HTTP interception proxy installed. BurpSuite is the only one recommended  for its support for HTTP2.</p>
+<p>The only requirement is to have an HTTP interception proxy installed (Burp Suite Pro or Free is recommended). You will also need Docker to run the different applications and Python 3 to run the exploit scripts.</p>
 <ul>
 <li><a href="https://portswigger.net/burp" target="_blank">Burp Suite</a></li>
+<li><a href="https://www.docker.com/products/docker-desktop" target="_blank">Docker</a></li>
+<li><a href="https://www.python.org/downloads/" target="_blank">Python</a></li>
 </ul>
 <h2 is-upgraded>Running the applications</h2>
 <p>To do the exercises, you will need to run the <a href="https://github.com/GoSecure/request-smuggling-workshop" target="_blank">lab applications</a> by yourself. All applications were built with a docker container recipe. This should make the deployment easier.</p>
@@ -65,9 +67,9 @@ Content-Length: 0
 
 POST /login HTTP/1.1
 Host: myapp.com
-Content-Length: 33
+Content-Length: 35
 
-username=admin&amp;password=i&lt;3intent
+username=admin&amp;password=i&lt;3hackfest
 GET /logo.gif HTTP/1.1
 Host: myapp.com
 Content-Length: 0
@@ -293,7 +295,7 @@ Host: 127.0.0.1:80
       </google-codelab-step>
     
       <google-codelab-step label="LAB 2: HTTP/2" duration="20">
-        <p>For this lab, the <a href="https://armeria.dev/" target="_blank">Armenia proxy</a> is used. The proxy route request to two different web applications base on the requested path. HTTP2 Request Smuggling will allow us to access path that were not intent to be public.</p>
+        <p>For this lab, the <a href="https://armeria.dev/" target="_blank">Armeria proxy</a> is used. The proxy route request to two different web applications base on the requested path. HTTP2 Request Smuggling will allow us to access path that were not intent to be public.</p>
 <p class="image-container"><img alt="HTTP2 request smuggling schema" src="img\\b2a0f95fd89cc78c.png"></p>
 <h2 is-upgraded>Launching the application</h2>
 <p>You need to launch the application using the following commands:</p>
