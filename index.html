@@ -165,6 +165,8 @@ Conference!\r\n
 &gt; docker-compose up
 </code></pre>
 <p>Open <a href="http://localhost" target="_blank">http://localhost</a> in a browser to confirm that everything is running.</p>
+<h2 is-upgraded>Video tutorial</h2>
+<iframe class="youtube-video" src="https://www.youtube.com/embed/B5pWSOEDGaU?rel=0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <h2 is-upgraded>HRS detection</h2>
 <p>The following request needs to repeated ~10 times until you get <code>405 Not Allowed</code> (Method not allowed).</p>
 <pre><code>POST / HTTP/1.1
@@ -303,6 +305,8 @@ Host: 127.0.0.1:80
 &gt; docker-compose up
 </code></pre>
 <p>Open <a href="https://localhost:8443" target="_blank">https://localhost:8443</a> in a browser to confirm that everything is running. The TLS certificate is self-signed.</p>
+<h2 is-upgraded>Video tutorial</h2>
+<iframe class="youtube-video" src="https://www.youtube.com/embed/HJWVPMdsrFA?rel=0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <h2 is-upgraded>Detection</h2>
 <p>Before doing requests to hidden resources, we need to confirm the proxy and backend are vulnerable. To do this test, we are using path are known to have valid response.</p>
 <p>The following requests will test if the proxy transform HTTP2 request to HTTP1 without validation to unnecessary header such as the <code>content-length</code>.</p>
@@ -424,6 +428,8 @@ optional arguments:
 </code></pre>
 <p>Open <a href="http://localhost:8002" target="_blank">http://localhost:8002</a> in a browser to confirm that everything is running.</p>
 <p class="image-container"><img alt="WebSocket lab 3 preview" src="img\\1fafe792ee926d81.png"></p>
+<h2 is-upgraded>Video tutorial</h2>
+<iframe class="youtube-video" src="https://www.youtube.com/embed/aEbrDMHkns8?rel=0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <h2 is-upgraded>Objective</h2>
 <p>In this exercise, the proxy is blocking specific URLs from being accessed. The URLs blocked are part of <a href="https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/" target="_blank">Spring actuator API</a>. Developers use it mainly in development mode for debugging their applications or microservices. It has the potential to leak user sessions (via <code>/trace</code> or <code>/httptrace</code>) and enable <a href="https://spaceraccoon.dev/remote-code-execution-in-three-acts-chaining-exposed-actuators-and-h2-database" target="_blank">RCE when some extensions are enable</a>.</p>
 <p class="image-container"><img alt="Forbidden access actuator spring" src="img\\6dd0d001a257f666.png"></p>
@@ -498,6 +504,8 @@ c07
 &gt; docker-compose up
 </code></pre>
 <p>Open <a href="https://localhost:8443" target="_blank">https://localhost:8443</a> in a browser to confirm that everything is running.</p>
+<h2 is-upgraded>Video tutorial</h2>
+<iframe class="youtube-video" src="https://www.youtube.com/embed/9ZCdpVHdJS0?rel=0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <h2 is-upgraded>Scenario 1: Bypassing WAF</h2>
 <p>Visit <code>https://localhost:8443/movie?id=1</code>. If you attempt to tamper with the parameter <code>id</code>, you will see that it is filtered by a Web Application Firewall. In this case, NAXSI is configured in front of the web application. Exploiting some vulnerabilities can be much harder <em>(see impossible)</em> when a strong firewall is in place. By default, NAXSI is configured to block all quotes <code>'</code> characters. However, with the HTTP 2 Cleartext passthrough we just learned, it is possible to send requests that would not be seen by the firewall.</p>
 <h2 is-upgraded>Validation</h2>
